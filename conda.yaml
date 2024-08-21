@@ -1,0 +1,26 @@
+name: titanic
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.10
+  - conda-forge::ncurses
+  - ipython
+  - jupyter
+  - tqdm
+  - matplotlib
+  - pandas
+  - scikit-learn
+  - pyyaml
+  - pytorch
+  - pytorch-cuda=11.8
+  - tensorboard
+  - torchvision
+  - torchaudio
+
+# ruamel_yaml
+# termcolor
+# pykeops
+# gym
+# open3d
