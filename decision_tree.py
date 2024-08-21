@@ -72,11 +72,12 @@ def main():
     # ['PassengerId', 'HomePlanet', 'CryoSleep', 'Cabin', 'Destination', 'Age', 'VIP', 'RoomService', 'FoodCourt', 'ShoppingMall', 'Spa', 'VRDeck', 'Name', 'Transported']
 
     tdata = process_data(data)
-
-    clf = tree.DecisionTreeClassifier()
+    max_depth = 10
+    clf = tree.DecisionTreeClassifier(max_depth=max_depth)
     clf = clf.fit(tdata[['HomePlanet', 'CryoSleep', 'CabinDeck', 'CabinNum', 'CabinSide', 'Destination', 'Age', 'VIP']], data['Transported'])
 
     tree.plot_tree(clf)
+    plt.savefig('results/decision_tree_depth{}.png'.format(max_depth))
 
     validation_data = pd.read_csv("data/valid.csv")
 
@@ -85,6 +86,29 @@ def main():
     preds = clf.predict(vdata[['HomePlanet', 'CryoSleep', 'CabinDeck', 'CabinNum', 'CabinSide', 'Destination', 'Age', 'VIP']])
     correct = preds == validation_data['Transported'].to_numpy()
     print('correct perc:', correct.sum() / len(correct))
+    # import pdb; pdb.set_trace()
+
+
+    """
+    Cryosleep is the biggest indicator. Just by using CryoSleep alone, we can get 0.72 accuracy on the validation set, meaning that transportation victims are much more likely if they were in CryoSleep. 
+    cpred = vdata['CryoSleep'].to_numpy().astype(bool)
+    (cpred == vtrans).sum() / len(vtrans)
+     == 0.7221795855717574
+
+    A max depth of 7 appears to work the best with an accuracy of 0.75
+     
+    Depths:
+     - 1 : 0.722
+     - 2 : 0.7375
+     - 3 : 0.7436684574059862
+     - 4 : 0.7429009976976209
+     - 5 : 0.7390636991557943
+     - 6 : 0.7436684574059862
+     - 7 : 0.7513430544896393
+     - 8 : 0.740598618572525
+     - 9 : 0.740598618572525
+     - 10 : 0.735993860322333
+    """
 
 
 if __name__ == '__main__':
