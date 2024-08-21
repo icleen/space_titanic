@@ -235,13 +235,15 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     clip_grad = None
 
-    model = FCNet(len(datasamp), 1, layers=[100, 100, 100])
+    model_name = '50bnlndrmish'
+
+    model = FCNet(len(datasamp), 1, layers=[50, 50, 50, 50, 50], activation='mish', batchnorm=True, layernorm=True, dropout=0.5)
     model.to(device)
     print(model)
 
     optim = torch.optim.Adam(
         model.parameters(),
-        lr=1e-4,
+        lr=2e-4,
         weight_decay=5e-4
     )
     clip_grad = lambda x : nn.utils.clip_grad_norm_(
@@ -267,12 +269,12 @@ def main():
         checkpoint['valid_losses'] = valid_losses
         checkpoint['valid_acces'] = valid_acces
         checkpoint['epoch'] = epoch
-        filename = 'results/deepnet/deepnet_e{}.torch'.format(epoch)
+        filename = 'results/deepnet/deepnet_e{}_{}.torch'.format(epoch, model_name)
         torch.save(checkpoint, filename)
         plt.plot(train_losses)
         plt.plot(valid_losses)
         plt.plot(valid_acces)
-        plt.savefig('results/deepnet/deepnet_epoch{}.png'.format(epoch))
+        plt.savefig('results/deepnet/deepnet_epoch{}_{}.png'.format(epoch, model_name))
         plt.clf()
         print('saved to', filename)
 
@@ -322,9 +324,9 @@ def main():
 
     best_epoch = np.argmax(valid_acces)
     print('best epoch:', best_epoch, valid_acces[best_epoch])
-    filename = 'results/deepnet/deepnet_e{}.torch'.format(best_epoch)
+    filename = 'results/deepnet/deepnet_e{}_{}.torch'.format(best_epoch, model_name)
     model_info = torch.load(filename)
-    torch.save(model_info, 'results/deepnet/best_model.torch')
+    torch.save(model_info, 'results/deepnet/best_model_{}.torch'.format(model_name))
 
 
 if __name__ == '__main__':
