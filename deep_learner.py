@@ -235,16 +235,22 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     clip_grad = None
 
-    model_name = '50bnlndrmish'
+    model_name = '100bnlndrmishsch'
 
-    model = FCNet(len(datasamp), 1, layers=[50, 50, 50, 50, 50], activation='mish', batchnorm=True, layernorm=True, dropout=0.5)
+    model = FCNet(len(datasamp), 1, layers=[100, 100, 100, 100, 100], activation='mish', batchnorm=True, layernorm=True, dropout=0.5)
     model.to(device)
     print(model)
 
+    lr = 1e-3
     optim = torch.optim.Adam(
         model.parameters(),
-        lr=2e-4,
+        lr=lr,
         weight_decay=5e-4
+    )
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(
+        optim,
+        step_size=1,
+        gamma=0.1,
     )
     clip_grad = lambda x : nn.utils.clip_grad_norm_(
         x, 1
@@ -252,9 +258,9 @@ def main():
 
     model.train()
     start_epoch = 0
-    end_epoch = 1000
+    end_epoch = 2000
     eval_batch = 25
-    save_best_after = 100
+    save_best_after = 200
     save_batch = 25
     train_losses = []
     train_acces = []
@@ -321,6 +327,9 @@ def main():
 
         if epoch >= save_best_after and epoch % save_batch == 0:
             save_model(epoch)
+
+        if epoch == 200 or epoch == 1000:
+            lr_scheduler.step()
 
     best_epoch = np.argmax(valid_acces)
     print('best epoch:', best_epoch, valid_acces[best_epoch])

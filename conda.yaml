@@ -18,9 +18,3 @@ dependencies:
   - tensorboard
   - torchvision
   - torchaudio
-
-# ruamel_yaml
-# termcolor
-# pykeops
-# gym
-# open3d
