@@ -164,14 +164,14 @@ class FCNet(nn.Module):
         return F.binary_cross_entropy_with_logits(pred, target)
 
     def evaluate(self, dataset):
-        self.eval()
         loss = 0
         acc = 0
         for d, t in dataset:
             d = d.to(self.get_device())
             t = t.to(self.get_device())
-            pred = F.sigmoid(self(d)) > 0.5
-            acc += (pred == t).sum().item() / len(d)
+            pred = F.sigmoid(self(d))
+            # import pdb; pdb.set_trace()
+            acc += ((pred > 0.6) == t).sum().item() / len(d)
             loss += self.loss_fn(d, t).item()
         return loss / len(dataset), acc / len(dataset)
     
@@ -203,7 +203,7 @@ def tensor_process(data):
 
 
 def main():
-    batch_size = 100
+    batch_size = 200
     use_luxery = True
     # ['PassengerId', 'HomePlanet', 'CryoSleep', 'Cabin', 'Destination', 'Age', 'VIP', 'RoomService', 'FoodCourt', 'ShoppingMall', 'Spa', 'VRDeck', 'Name', 'Transported']
     data = pd.read_csv("data/train.csv") 
@@ -241,16 +241,16 @@ def main():
     model.to(device)
     print(model)
 
-    lr = 1e-3
+    lr = 5e-4
     optim = torch.optim.Adam(
         model.parameters(),
         lr=lr,
-        weight_decay=5e-4
+        weight_decay=5e-3
     )
     lr_scheduler = torch.optim.lr_scheduler.StepLR(
         optim,
         step_size=1,
-        gamma=0.1,
+        gamma=0.2,
     )
     clip_grad = lambda x : nn.utils.clip_grad_norm_(
         x, 1
@@ -258,9 +258,9 @@ def main():
 
     model.train()
     start_epoch = 0
-    end_epoch = 2000
+    end_epoch = 500
     eval_batch = 25
-    save_best_after = 200
+    save_best_after = 50
     save_batch = 25
     train_losses = []
     train_acces = []
@@ -275,12 +275,12 @@ def main():
         checkpoint['valid_losses'] = valid_losses
         checkpoint['valid_acces'] = valid_acces
         checkpoint['epoch'] = epoch
-        filename = 'results/deepnet/deepnet_e{}_{}.torch'.format(epoch, model_name)
+        filename = 'results/deepnet/deepnet_{}_e{}.torch'.format(model_name, epoch)
         torch.save(checkpoint, filename)
         plt.plot(train_losses)
         plt.plot(valid_losses)
         plt.plot(valid_acces)
-        plt.savefig('results/deepnet/deepnet_epoch{}_{}.png'.format(epoch, model_name))
+        plt.savefig('results/deepnet/deepnet_{}_epoch{}.png'.format(model_name, epoch))
         plt.clf()
         print('saved to', filename)
 
@@ -328,12 +328,12 @@ def main():
         if epoch >= save_best_after and epoch % save_batch == 0:
             save_model(epoch)
 
-        if epoch == 200 or epoch == 1000:
+        if epoch == 100 or epoch == 200:
             lr_scheduler.step()
 
     best_epoch = np.argmax(valid_acces)
     print('best epoch:', best_epoch, valid_acces[best_epoch])
-    filename = 'results/deepnet/deepnet_e{}_{}.torch'.format(best_epoch, model_name)
+    filename = 'results/deepnet/deepnet_{}_e{}.torch'.format(model_name, best_epoch)
     model_info = torch.load(filename)
     torch.save(model_info, 'results/deepnet/best_model_{}.torch'.format(model_name))
 

@@ -4,8 +4,7 @@ import numpy as np
 data = pd.read_csv("data/og_data/train.csv")
 idx = np.arange(len(data))
 np.random.shuffle(idx)
-vsize = int(0.15 * len(data))
-import pdb; pdb.set_trace()
+vsize = int(0.2 * len(data))
 vidx = np.sort(idx[:vsize])
 tidx = np.sort(idx[vsize:])
 
